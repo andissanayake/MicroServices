@@ -4,6 +4,9 @@
 using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Elasticsearch;
 
 namespace UserManager.Api
 {
@@ -11,14 +14,24 @@ namespace UserManager.Api
     {
         public static void Main(string[] args)
         {
-            Console.Title = "API";
-
+            Console.Title = "User Manger API";
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .Enrich.WithProperty("Application Name", "User Manger API")
+                .Enrich.FromLogContext()
+                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
+                {
+                       AutoRegisterTemplate = true,
+                })
+                .CreateLogger();
             BuildWebHost(args).Run();
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                .UseSerilog()
                 .Build();
     }
 }

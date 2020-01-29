@@ -8,7 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.Elasticsearch;
 using Serilog.Sinks.SystemConsole.Themes;
+using System;
 using System.Linq;
 
 namespace Auth.UI
@@ -22,7 +24,7 @@ namespace Auth.UI
 
             var host = CreateWebHostBuilder(args).Build();
 
-            if (seed)
+            if (!seed)
             {
                 var config = host.Services.GetRequiredService<IConfiguration>();
                 var connectionString = config.GetConnectionString("DefaultConnection");
@@ -44,8 +46,12 @@ namespace Auth.UI
                             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                             .MinimumLevel.Override("System", LogEventLevel.Warning)
                             .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
+                            .Enrich.WithProperty("Application Name", "OpenID")
                             .Enrich.FromLogContext()
-                            .WriteTo.File(@"identityserver4_log.txt")
+                            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
+                            {
+                                AutoRegisterTemplate = true,
+                            })
                             .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", theme: AnsiConsoleTheme.Literate);
                     });
         }
