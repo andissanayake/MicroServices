@@ -17,6 +17,7 @@ services:
       dockerfile: src/OpenID/Auth.UI/Dockerfile
     links:
       - sql.data
+      - elasticsearch
     volumes:
       - sql-data:/usr/share/sql/data
 
@@ -26,6 +27,8 @@ services:
     build:
       context: .
       dockerfile: src/ApiGateway/ApiGateway.Api/Dockerfile
+    links:
+      - elasticsearch
 
 
   admin.ui:
