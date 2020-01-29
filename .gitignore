@@ -16,3 +16,4 @@
 /src/Services/UserManager/UserManger.Api/bin/Debug
 /src/AdminPortal/Admin.UI/bin/Debug/netcoreapp2.2
 /src/Analytics/HealthCheck/bin/Debug/netcoreapp2.2
+/src/Analytics/HealthCheck/healthchecksdb
