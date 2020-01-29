@@ -17,6 +17,8 @@ services:
       dockerfile: src/OpenID/Auth.UI/Dockerfile
     links:
       - sql.data
+    volumes:
+      - sql-data:/usr/share/sql/data
 
 
   apigateway.api:
@@ -38,6 +40,10 @@ services:
     build:
       context: .
       dockerfile: src/Services/UserManager/UserManger.Api/Dockerfile
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch
 
 
   healthcheck:
@@ -77,7 +83,10 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS="http://elasticsearch:9200"
       - XPACK_MONITORING_ENABLED=true
+    links:
+      - elasticsearch
 
 
 volumes:
   elasticsearch-data:
+  sql-data:
