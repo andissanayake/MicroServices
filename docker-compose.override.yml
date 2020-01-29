@@ -1,0 +1,36 @@
+version: '3.4'
+
+services:
+  auth.ui:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5010:80"
+
+  apigateway.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5210:80"
+
+
+  admin.ui:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5110:80"
+
+
+  usermanager.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5211:80"
+
+
+  healthcheck:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5111:80"
+

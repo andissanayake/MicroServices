@@ -1,0 +1,83 @@
+version: '3.4'
+
+services:
+  sql.data:
+    image: microsoft/mssql-server-linux:2017-latest
+    environment:
+      - SA_PASSWORD=sa12345!
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+
+
+  auth.ui:
+    image: ${DOCKER_REGISTRY-}authui:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/OpenID/Auth.UI/Dockerfile
+    links:
+      - sql.data
+
+
+  apigateway.api:
+    image: ${DOCKER_REGISTRY-}apigatewayapi:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/ApiGateway/ApiGateway.Api/Dockerfile
+
+
+  admin.ui:
+    image: ${DOCKER_REGISTRY-}adminui:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/AdminPortal/Admin.UI/Dockerfile
+
+
+  usermanager.api:
+    image: ${DOCKER_REGISTRY-}usermanagerapi:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/Services/UserManager/UserManger.Api/Dockerfile
+
+
+  healthcheck:
+    image: ${DOCKER_REGISTRY-}healthcheck:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/Analytics/HealthCheck/Dockerfile
+    links:
+      - auth.ui
+      - apigateway.api
+      - admin.ui
+      - usermanager.api
+
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=true
+      - xpack.watcher.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.2.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS="http://elasticsearch:9200"
+      - XPACK_MONITORING_ENABLED=true
+
+
+volumes:
+  elasticsearch-data:
