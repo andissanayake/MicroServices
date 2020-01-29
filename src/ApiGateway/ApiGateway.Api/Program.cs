@@ -6,6 +6,9 @@ using System.IO;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Elasticsearch;
 
 namespace ApiGateway.Api
 {
@@ -14,7 +17,16 @@ namespace ApiGateway.Api
         public static void Main(string[] args)
         {
             Console.Title = "Api Gateway API";
-
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.WithProperty("Application Name", "Api Gateway")
+            .Enrich.FromLogContext()
+            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
+            {
+                AutoRegisterTemplate = true,
+            })
+            .CreateLogger();
             BuildWebHost(args).Run();
         }
 
@@ -24,6 +36,7 @@ namespace ApiGateway.Api
                 config.AddJsonFile(Path.Combine("", "configuration.json"));
             })
             .UseStartup<Startup>()
+            .UseSerilog()
             .Build();
     }
 }
